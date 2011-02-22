@@ -7,6 +7,7 @@ require 'thor'
 include REXML
 
 class AndroidLocalSQLite < Thor
+  
   desc "dump", "dump the database attached to this project"
   method_option :manifest, :type => :string, :aliases => "-m", :default => "#{Dir.pwd}/AndroidManifest.xml", :desc => "location of the AndroidManifest.xml for the project"
   method_option :database_name, :type => :string, :aliases => "-n", :desc => "Database name defaulted to package name with '.db' as suffix (i.e. com.test.db)"
@@ -66,17 +67,20 @@ class AndroidLocalSQLite < Thor
     exec "adb pull /data/data/#{package}/files/#{file} ."
   end
   
-  def test
+  desc "install", "installing the APK located in bin against all devices connected"
+  def install
     output = ""
     IO.popen("adb devices") do |readme|
       readme.each do |line|
         output << line unless line.start_with? "List"
       end
     end
-    devices = output.scan(/(\w+)\tdevice\n+/)
+    devices = output.scan(/(\w+)\tdevice\n+/)    
+    puts "no device found"; exit(0) if devices.empty?
+    puts "no apk found in bin"; exit(0) if Dir.glob("bin/*.apk").empty?
     devices.each do |d|
-      puts "adb -e #{d} install -r /tmp/TasteCard_v1.0.8.apk"
-      exec "adb -e #{d} install -r /tmp/TasteCard_v1.0.8.apk"
+      puts "installing #{Dir.glob("bin/*.apk").first} onto device with serial #{d[0]}"
+      exec "adb -s #{d[0]} install -r #{Dir.glob("bin/*.apk").first}"
     end    
   end
 
