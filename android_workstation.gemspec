@@ -10,7 +10,14 @@ Gem::Specification.new do |s|
   s.email       = ["carl@novoda.com"]
   s.homepage    = "https://github.com/charroch/android_workstation"
   s.summary     = %q{Utility tools to help with android development}
-  s.description = %q{Android utilities to be executed within the android root project following a standard structure (apk in bin folder etc...)}
+  s.description = %q{
+    Android utilities to be executed within the android root project following a standard structure (apk in bin folder etc...)
+    
+    From the root of your project where the AndroidManifest.xml is located, you can use the following
+    
+    asql => android sql utility
+    amanage => managing APK/monkey etc...
+  }
 
   s.rubyforge_project = "android_workstation"
 

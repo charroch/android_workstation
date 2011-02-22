@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'rexml/document'
 require 'thor'
+require 'tmpdir'
 
 include REXML
 
@@ -35,6 +36,29 @@ class AndroidLocalManage < Thor
       puts "installing #{Dir.glob("bin/*.apk").first} onto device with serial #{d[0]}"
       exec "adb -s #{d[0]} install -r #{Dir.glob("bin/*.apk").first}"
     end    
+  end
+
+  desc "monkey", "Runs the monkey against the APK for this project placing the logs in the temp folder for the system"
+  def monkey
+    invoke :install
+    begin
+      manifest = Document.new(File.new(options[:manifest]))
+    rescue Exception=>e
+      puts "Could not find AndroidManifest.xml, execute from root of your project or use -m option to specify the location of the manifest"
+      exit(0)
+    end
+    package = package(manifest)
+    output = ""
+    IO.popen("adb devices") do |readme|
+      readme.each do |line|
+        output << line unless line.start_with? "List"
+      end
+    end
+    devices = output.scan(/(\w+)\tdevice\n+/)
+    devices.each do |d|
+      puts "Running monkey #{Dir.glob("bin/*.apk").first} onto device with serial #{d[0]}"
+      exec "adb -s #{d[0]} shell monkey -p #{package} -v #{1 * 60 * 1000} --throttle 2000 --ignore-crashes > #{Dir.tmpdir + "/" + d[0] + ".monkey"}"
+    end  
   end
 
   private

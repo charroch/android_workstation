@@ -53,36 +53,7 @@ class AndroidLocalSQLite < Thor
       fields ||= "*"
       exec "adb shell sqlite3 /data/data/#{package}/databases/#{dbname} 'select #{fields} from #{options[:table_name]} #{where};'"
     end
-  end
-
-  desc "pull [FILE]", "pull from the current directory's project the file specified"
-  def pull(file)
-    begin
-      manifest = Document.new(File.new(options[:manifest]))
-    rescue Exception=>e
-      puts "Could not find AndroidManifest.xml, execute from root of your project or use -m option to specify the location of the manifest"
-      exit(0)
-    end
-    package = package(manifest)
-    exec "adb pull /data/data/#{package}/files/#{file} ."
-  end
-  
-  desc "install", "installing the APK located in bin against all devices connected"
-  def install
-    output = ""
-    IO.popen("adb devices") do |readme|
-      readme.each do |line|
-        output << line unless line.start_with? "List"
-      end
-    end
-    devices = output.scan(/(\w+)\tdevice\n+/)    
-    puts "no device found"; exit(0) if devices.empty?
-    puts "no apk found in bin"; exit(0) if Dir.glob("bin/*.apk").empty?
-    devices.each do |d|
-      puts "installing #{Dir.glob("bin/*.apk").first} onto device with serial #{d[0]}"
-      exec "adb -s #{d[0]} install -r #{Dir.glob("bin/*.apk").first}"
-    end    
-  end
+  end  
 
   private
     def package(manifest)
