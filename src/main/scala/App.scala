@@ -1,6 +1,7 @@
 package com.novoda
 
 import com.android.ddmlib.{IShellOutputReceiver, AndroidDebugBridge, IDevice}
+import scopt.OptionParser
 
 class App extends xsbti.AppMain {
   def run(config: xsbti.AppConfiguration) = {
@@ -14,13 +15,61 @@ object App {
 
   def run(args: Array[String]): Int = {
     println("Hello World: " + args.mkString(" "))
-    AndroidTools().devices()
+    if (parser.parse(args)) {
+      // AndroidTools().devices()      parser
+
+      parser.showUsage
+    }
+    else {
+      parser.showUsage
+    }
     0
   }
 
   def main(args: Array[String]) {
     System.exit(run(args))
   }
+
+  class Config {
+    var foo: Int = 0;
+    var bar: String = "";
+    var xyz: Boolean = true
+    var libname: String = ""
+    var libfile: String = ""
+    var whatnot: String = ""
+  }
+
+  val config: Config = new Config
+
+
+  val parser = new OptionParser("sadb") {
+
+    arg("<singlefile>", "<singlefile> is an argument", {
+      v: String => config.whatnot = v
+    })
+
+    intOpt("f", "foo", "foo is an integer property", {
+      v: Int => config.foo = v
+    })
+
+    opt("o", "output", "<file>", "output is a string property", {
+      v: String => config.bar = v
+    })
+
+    booleanOpt("xyz", "xyz is a boolean property", {
+      v: Boolean => config.xyz = v
+    })
+
+    keyValueOpt("l", "lib", "<libname>", "<filename>", "load library <libname>", {
+      (key: String, value: String) => {
+        println(key + "  = " + value)
+        config.libname = key;
+        config.libfile = value
+      }
+    })
+
+  }
+
 }
 
 class AndroidTools(adb: AndroidDebugBridge) {

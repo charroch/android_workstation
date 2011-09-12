@@ -1,7 +1,7 @@
 [app]
   version: 0.1.0
   org: com.novoda
-  name: Oliveira
+  name: oliveira
   class: com.novoda.App
 [scala]
   version: 2.9.1
