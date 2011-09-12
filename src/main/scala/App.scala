@@ -114,17 +114,16 @@ object AndroidTools {
 
   trait Activity extends Shell
 
-
   case class Start(pkg: String, klass: String) extends Activity {
     def apply(device: IDevice) {
-      device.executeShellCommand("am start -a android.intent.action.MAIN -n %s/%s" format(pkg, klass), new RR)
+      device.executeShellCommand("am start -a android.intent.action.MAIN -n %s/%s" format(pkg, klass), new DefaultShellOutputReceiver)
     }
   }
 
   def apply() = {
     try {
       AndroidDebugBridge.init(true)
-      val adb = AndroidDebugBridge.createBridge
+      val adb = AndroidDebugBridge.createBridge()
       new AndroidTools(adb)
     }
   }
@@ -132,15 +131,6 @@ object AndroidTools {
 }
 
 case class Exit(val code: Int) extends xsbti.Exit
-
-class RR extends IShellOutputReceiver {
-  def isCancelled = false;
-
-  def flush = {};
-
-  def addOutput(x: Array[Byte], y: Int, z: Int) = {}
-}
-
 
 class DefaultShellOutputReceiver extends IShellOutputReceiver {
 
