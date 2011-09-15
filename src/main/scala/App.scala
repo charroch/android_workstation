@@ -1,7 +1,9 @@
 package com.novoda
 
-import com.android.ddmlib.{IShellOutputReceiver, AndroidDebugBridge, IDevice}
+import android.FileOutputReceiver
+import com.android.ddmlib.{AndroidDebugBridge, IDevice}
 import scopt.OptionParser
+import java.io.File
 
 class App extends xsbti.AppMain {
   def run(config: xsbti.AppConfiguration) = {
@@ -18,9 +20,6 @@ object App {
     if (parser.parse(args)) {
       // AndroidTools().devices()      parser
 
-      parser.showUsage
-    }
-    else {
       parser.showUsage
     }
     0
@@ -73,26 +72,45 @@ object App {
 }
 
 class AndroidTools(adb: AndroidDebugBridge) {
+  implicit def allDeviceFilter(d: IDevice): DeviceFilter = {
+    _ => true
+  }
+    implicit def t(d:IDevice):Boolean = {
+    true
+  }
+
 
   def listDevices = {
     println("Devices attached %s" format ("all devices"))
-    //devices
+    devices
   }
 
-  def f(d: IDevice) = true
+  type DeviceFilter = (IDevice => Boolean)
 
-  def devices(filter: (IDevice => Boolean) = f): Seq[IDevice] = {
+
+  def f: DeviceFilter = {
+    _ => true
+  }
+
+  def devices(implicit filter: (IDevice => Boolean)): Seq[IDevice] = {
     adb.getDevices.filter(filter)
   }
 
-  def execute(command: (IDevice => Unit)) {
-    devices().foreach(command)
+  def execute(command: (IDevice => Unit))(implicit filter: (IDevice => Boolean)) {
+    devices.foreach(command)
   }
 }
 
 object AndroidTools {
+  type DeviceFilter = (IDevice => Boolean)
 
-  implicit def allDeviceFilter(d: IDevice) = true
+  implicit def allDeviceFilter(d: IDevice): DeviceFilter = {
+    _ => true
+  }
+
+  implicit def t(d:IDevice):Boolean = {
+    true
+  }
 
   type AndroidCommand = (IDevice => Unit)
 
@@ -116,30 +134,20 @@ object AndroidTools {
 
   case class Start(pkg: String, klass: String) extends Activity {
     def apply(device: IDevice) {
-      device.executeShellCommand("am start -a android.intent.action.MAIN -n %s/%s" format(pkg, klass), new DefaultShellOutputReceiver)
+      device.executeShellCommand("am start -a android.intent.action.MAIN -n %s/%s" format(pkg, klass), new FileOutputReceiver(new File("/tmp/test")))
     }
   }
 
-  def apply() = {
+  def apply(): AndroidTools = {
     try {
       AndroidDebugBridge.init(true)
-      val adb = AndroidDebugBridge.createBridge()
-      new AndroidTools(adb)
+    } catch {
+      case e: Exception =>
+      //AndroidDebugBridge.createBridge()
     }
+    new AndroidTools(AndroidDebugBridge.createBridge)
   }
 
 }
 
 case class Exit(val code: Int) extends xsbti.Exit
-
-class DefaultShellOutputReceiver extends IShellOutputReceiver {
-
-  def isCancelled = false;
-
-  def flush = {
-  };
-
-  def addOutput(x: Array[Byte], y: Int, z: Int) = {
-    println(new String(x))
-  }
-}
