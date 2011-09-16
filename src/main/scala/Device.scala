@@ -8,7 +8,7 @@ class RichDevice(device: IDevice) {
 
   }
 
-  def apply(builder: JProcessBuilder): ProcessBuilder = new Simple(builder)
+  //def apply(builder: JProcessBuilder): ProcessBuilder = new Simple(builder)
 }
 
 object RichDevice {
@@ -24,5 +24,5 @@ trait ProcessImplicits {
 
   import scala.sys.process._
 
-  implicit def deviceToProcess(device: RichDevice): ProcessBuilder = apply(command)
+  //implicit def deviceToProcess(device: RichDevice): ProcessBuilder = apply(command)
 }

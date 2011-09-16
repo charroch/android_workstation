@@ -11,4 +11,6 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "1.1.2"
 )
 
+unmanagedBase <<= baseDirectory { base => base / "custom_lib" }
+
 resolvers += "Scala Tools Nexus Releases" at "http://nexus.scala-tools.org/content/repositories/releases/"
